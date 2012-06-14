@@ -24,12 +24,13 @@ GAME.Animation = function (trackData, totalFrames, KPS, audioFileName)
     this.audio = null;
 
     /** load audio file **/
-    this.audio = new ENGINE.Audio([audioFileName], 251, 1, false);
+    this.audio = new ENGINE.Audio([audioFileName], 5000, 1, false);
 };
 
+/** materialObj is type THREE.MeshBasicMaterial **/
 GAME.Model = function (meshFileName, textureFileName)
 {
-    console.log('hit construct');
+    this.Material = null;
     this.meshData = null;
     this.texture = null;
     this.animations = []; // array of GAME.Animation
@@ -45,8 +46,14 @@ GAME.Model = function (meshFileName, textureFileName)
 
     this.Load = function (callbackMain)
     {
-        this.texture = THREE.ImageUtils.loadTexture( this._texture );
-        console.log('Load start');
+        if (this.Material == null) {
+            this.Material = new THREE.MeshBasicMaterial({wireframe: false});
+        }
+        
+        if (this._texture != null){
+            this.texture = THREE.ImageUtils.loadTexture( this._texture );
+            this.Material.map = this.texture;
+        }
         var objLoader = new THREE.OBJLoader();
         var self = this;
         objLoader.load( this.meshFile, function ( object ) {
@@ -54,7 +61,7 @@ GAME.Model = function (meshFileName, textureFileName)
 
             for ( var i = 0, l = object.children.length; i < l; i ++ ) {
 
-                object.children[ i ].material.map = self.texture;
+                object.children[ i ].material = self.Material;
 
             }
 
@@ -67,16 +74,35 @@ GAME.Model = function (meshFileName, textureFileName)
             object.castShadow = true;
             self.meshData = object;
 
-            console.log('Load done - calling callback');
             callbackMain(object);
         } );
+    };
+
+    this.SetScale = function ( scale )
+    {
+        if (this.meshData == null)
+        {
+            return;
+        }
+
+        this.meshData.scale = new THREE.Vector3(scale, scale, scale);
+    };
+
+    this.SetPosition = function ( x, y, z )
+    {
+        if (this.meshData == null)
+        {
+            return;
+        }
+
+        this.meshData.position = new THREE.Vector3(x, y, z);
     };
 
     this.SetAnimation = function (animationIndex)
     {
         if (this.prevAnimationIndex != this.curAnimationIndex && this.prevAnimationIndex != null)
         {
-           this.animations[this.curAnimationIndex].audio.stop();
+            this.animations[this.curAnimationIndex].audio.stop();
         }
 
         this.prevAnimationIndex = animationIndex;
@@ -85,9 +111,9 @@ GAME.Model = function (meshFileName, textureFileName)
         this.curAnimationStart = 0;
     };
 
-    this.Animate = function ()
+    this.Animate = function (gCamera)
     {
-        if (this.meshData == null)
+        if (this.meshData == null || this.animations.length <= 0)
         {
             return;
         } else if (this.curAnimationIndex == undefined) {
@@ -98,13 +124,15 @@ GAME.Model = function (meshFileName, textureFileName)
         if (this.animations[this.curAnimationIndex].audio.paused == true || (this.curAnimationTime == 0 && this.animations[this.curAnimationIndex].audio != null))
         {
             if (this.animations[this.curAnimationIndex].audio.paused == true)
-                {
-                    var dr = new Date();
-                    this.curAnimationStart = dr.getTime();
-                }
+            {
+                var dr = new Date();
+                this.curAnimationStart = dr.getTime();
+            }
             this.animations[this.curAnimationIndex].audio.position.copy( this.meshData.position );
             this.animations[this.curAnimationIndex].audio.play();
         }
+        this.animations[this.curAnimationIndex].audio.update(gCamera);
+
         var dd = new Date();
         this.curAnimationTime = dd.getTime() - this.curAnimationStart;
 
@@ -114,7 +142,6 @@ GAME.Model = function (meshFileName, textureFileName)
             this.curAnimationTime = 0;
         }
 
-        this.meshData.position.z -= 10;
         CreateMorphedModel( this.meshData, this.animations[this.curAnimationIndex].trackData,
             this.curAnimationTime, this.animations[this.curAnimationIndex].numFrames,
             this.animations[this.curAnimationIndex].kps);
