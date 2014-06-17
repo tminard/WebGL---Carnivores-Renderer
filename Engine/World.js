@@ -12,10 +12,11 @@ ENGINE.World = function ( )
 {
     this._scene = null;
     this._camera = null;
+    this._controls = null;
     var _segmentSize = 129; //129
     var _worldSize = 10000;
     var _wireframeMode = false;
-    var _textureFileName = "/grass.jpg";
+    var _textureFileName = "grass.jpg";
 
     var _renderer = null;
 
@@ -30,8 +31,6 @@ ENGINE.World = function ( )
     var _worldMeshMaterial = null;
     var _worldMesh = null;
 
-    var _firstPersonControls = null;
-
     this.cModels = [ ];
 
     this.Init = function( )
@@ -41,6 +40,7 @@ ENGINE.World = function ( )
 
         this._scene = new THREE.Scene();
         this.setupCamera();
+        this.setupControls();
         this.LoadObjects();
 
         _worldMeshMaterial = new THREE.MeshBasicMaterial({
@@ -57,7 +57,6 @@ ENGINE.World = function ( )
         _renderer.setSize( window.innerWidth, window.innerHeight );
         _htmlContainer.appendChild( _renderer.domElement );
 
-        this.setupControls();
         this.setupLights();
         this.setupFog();
 
@@ -101,6 +100,7 @@ ENGINE.World = function ( )
         this._camera.lookAt( new THREE.Vector3(0, 110, 0) );
 
         _renderer.render( this._scene, this._camera );
+        this._controls.update();
         requestAnimationFrame( gAnimateLoop );
 
        this.AnimateModels();
@@ -150,18 +150,19 @@ ENGINE.World = function ( )
      */
     this.setupControls = function ()
     {
-        _firstPersonControls = new THREE.FirstPersonControls(
-            this._camera,
-            _renderer.domElement
-            );
+        this._controls = new THREE.TrackballControls( this._camera );
 
-        _firstPersonControls.movementSpeed = 5.0;
-        _firstPersonControls.lookSpeed = 0.005;
-        _firstPersonControls.noFly = true;
-        _firstPersonControls.activeLook = false;
-        _firstPersonControls.constrainVertical = true;
-        _firstPersonControls.verticalMin = 0;
-        _firstPersonControls.verticalMax = 0;
+        this._controls.rotateSpeed = 1.0;
+        this._controls.zoomSpeed = 1.2;
+        this._controls.panSpeed = 0.8;
+
+        this._controls.noZoom = false;
+        this._controls.noPan = false;
+
+        this._controls.staticMoving = true;
+        this._controls.dynamicDampingFactor = 0.3;
+
+        this._controls.keys = [ 65, 83, 68 ];
     }
 };
 

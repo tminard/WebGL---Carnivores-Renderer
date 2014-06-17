@@ -26,7 +26,7 @@ GAME.MyGame = function (world)
 
     this.SpawnGrass = function ( pos )
     {
-        var ch = new GAME.Model('/plant.obj', null);
+        var ch = new GAME.Model('plant.obj', null);
         ch.Material = new THREE.MeshBasicMaterial({
                 wireframe: false,
                 color: 0x195400
@@ -42,7 +42,7 @@ GAME.MyGame = function (world)
 
     this.SpawnAllo = function( pos, animation )
     {
-        var ch = new GAME.Model('/allo.obj', '/allo.bmp');
+        var ch = new GAME.Model('allo.obj', 'allo.bmp');
         ch.Material = new THREE.MeshBasicMaterial({
                 wireframe: false
             });
