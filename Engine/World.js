@@ -1,6 +1,6 @@
 var ENGINE = ENGINE || ( function () {
     return {
-        VERSION: 0.1
+        VERSION: 0.2
     };
 })();
 function gAnimateLoop()
@@ -13,10 +13,10 @@ ENGINE.World = function ( )
     this._scene = null;
     this._camera = null;
     this._controls = null;
-    var _segmentSize = 129; //129
-    var _worldSize = 10000;
+    var _segmentSize = 256;
+    var _worldSize = (_segmentSize * 256); // world size is in pixels
     var _wireframeMode = false;
-    var _textureFileName = "grass.jpg";
+    var _textureFileName = "grass_256.jpg";
 
     var _renderer = null;
 
@@ -43,9 +43,13 @@ ENGINE.World = function ( )
         this.setupControls();
         this.LoadObjects();
 
+        var floor_texture = THREE.ImageUtils.loadTexture( _textureFileName ); // /grass.jpg
+        floor_texture.wrapS = floor_texture.wrapT = THREE.RepeatWrapping;
+        floor_texture.repeat.set( _segmentSize, _segmentSize );
+
         _worldMeshMaterial = new THREE.MeshBasicMaterial({
             color: 0xFFFFFF,
-            map: THREE.ImageUtils.loadTexture( _textureFileName ), // /grass.jpg
+            map: floor_texture, 
             wireframe: _wireframeMode
         });
 
